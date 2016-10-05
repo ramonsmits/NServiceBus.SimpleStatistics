@@ -1,0 +1,1 @@
+c:\tools\nuget.exe pack NServiceBus.SimpleStatistics.csproj -Prop Configuration=Release
