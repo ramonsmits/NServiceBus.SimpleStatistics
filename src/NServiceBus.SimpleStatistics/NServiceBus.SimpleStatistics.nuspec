@@ -2,11 +2,11 @@
 <package>
   <metadata>
     <id>NServiceBus.SimpleStatistics</id>
-    <title>NServiceBus Simple Statistics</title>
+    <title>Simple Statistics extension for NServiceBus V5</title>
     <version>$version$</version>
     <authors>Ramon Smits</authors>
     <owners>ramonsmits</owners>
-    <licenseUrl>http://particular.net/LicenseAgreement</licenseUrl>
+    <licenseUrl>https://github.com/ramonsmits/NServiceBus.Statistics/tree/$version$/LICENSE.md</licenseUrl>
     <projectUrl>https://github.com/ramonsmits/NServiceBus.Statistics/</projectUrl>
     <iconUrl>http://s3.amazonaws.com/nuget.images/NServiceBus_32.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
