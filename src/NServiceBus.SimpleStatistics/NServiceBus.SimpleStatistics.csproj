@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageVersion>$(Version)</PackageVersion>
+    <TargetFrameworks>net452</TargetFrameworks>
+    <PackageId>NServiceBus.SimpleStatistics</PackageId>
+    <Company>https://github.com/ramonsmits</Company>
+    <Authors>ramonsmits</Authors>
+    <Description>Get live statistics in your console tile or your log and a summary of the performance at endpoint shutdown.</Description>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageReleaseNotes>$([System.IO.File]::ReadAllText("$(MSBuildProjectDirectory)/../../README.md"))</PackageReleaseNotes>
+    <PackageProjectUrl>https://github.com/ramonsmits/NServiceBus.SimpleStatistics</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <IncludeSymbols>True</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <IncludeSource>True</IncludeSource>
+    <RepositoryUrl>https://github.com/ramonsmits/NServiceBus.SimpleStatistics</RepositoryUrl>
+    <Copyright>Copyright 2019, 2020, 2021, 2022 (c) Ramon Smits</Copyright>
+    <PackageTags>nservicebus nservicebus7 pipeline monitoring metrics alerting</PackageTags>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\key.snk</AssemblyOriginatorKeyFile>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <LangVersion>latest</LangVersion>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="GitVersion.MsBuild" Version="5.11.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="NServiceBus" Version="[5.2.26,6.0.0)" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Configuration" />
+  </ItemGroup>
+
+</Project>
