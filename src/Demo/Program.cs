@@ -1,25 +1,29 @@
-﻿using System;
+﻿
+using System;
+using System.Threading.Tasks;
 using NServiceBus;
-using NServiceBus.Config;
-using NServiceBus.Config.ConfigurationSource;
 
 class Program
 {
-    public static void Main()
+    public static async Task Main()
     {
         Console.Title = "SimpleStatisticsDemo";
 
-        var cfg = new BusConfiguration();
-        cfg.EndpointName("SimpleStatisticsDemo");
-        cfg.UsePersistence<InMemoryPersistence>();
+        var cfg = new EndpointConfiguration("SimpleStatisticsDemo");
         cfg.EnableInstallers();
-
-        using (var bus = Bus.Create(cfg).Start())
+        cfg.SendFailedMessagesTo("error");
+        cfg.UseTransport<LearningTransport>();
+        var instance = await Endpoint.Start(cfg);
+        try
         {
             while (Console.ReadKey().Key != ConsoleKey.Escape)
             {
-                bus.SendLocal(new Message());
+                await instance.SendLocal(new Message());
             }
+        }
+        finally
+        {
+            await instance.Stop();
         }
     }
 }
@@ -28,26 +32,10 @@ class Message : IMessage
 {
 }
 
-
 class Handler : IHandleMessages<Message>
 {
-    public IBus Bus { get; set; }
-
-    public void Handle(Message message)
+    public async Task Handle(Message message, IMessageHandlerContext context)
     {
-        Console.WriteLine("Received {0}", Bus.CurrentMessageContext.Id);
-    }
-}
-
-
-class ProvideConfiguration :
-    IProvideConfiguration<MessageForwardingInCaseOfFaultConfig>
-{
-    public MessageForwardingInCaseOfFaultConfig GetConfiguration()
-    {
-        return new MessageForwardingInCaseOfFaultConfig
-        {
-            ErrorQueue = "error"
-        };
+        await Console.Out.WriteLineAsync($"Received {context.MessageId}");
     }
 }

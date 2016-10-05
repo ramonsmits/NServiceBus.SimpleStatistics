@@ -1,8 +1,8 @@
 using System;
+using System.Threading.Tasks;
 using NServiceBus.Pipeline;
-using NServiceBus.Pipeline.Contexts;
 
-class SimpleStatisticsBehavior : IBehavior<IncomingContext>
+class SimpleStatisticsBehavior : Behavior<ITransportReceiveContext>
 {
     readonly Implementation provider;
 
@@ -11,13 +11,13 @@ class SimpleStatisticsBehavior : IBehavior<IncomingContext>
         this.provider = provider;
     }
 
-    public void Invoke(IncomingContext context, Action next)
+    public override async Task Invoke(ITransportReceiveContext context, Func<Task> next)
     {
         var start = provider.Timestamp();
         try
         {
             provider.ConcurrencyInc();
-            next();
+            await next().ConfigureAwait(false);
             provider.SuccessInc();
         }
         catch
@@ -30,16 +30,6 @@ class SimpleStatisticsBehavior : IBehavior<IncomingContext>
             provider.DurationInc(start, provider.Timestamp());
             provider.ConcurrencyDec();
             provider.Inc();
-        }
-    }
-
-    public static readonly string Name = "StatisticsStep";
-
-    public class Step : RegisterStep
-    {
-        public Step() : base(Name, typeof(SimpleStatisticsBehavior), "Logs and displays statistics.")
-        {
-            InsertBefore(WellKnownStep.CreateChildContainer);
         }
     }
 }
