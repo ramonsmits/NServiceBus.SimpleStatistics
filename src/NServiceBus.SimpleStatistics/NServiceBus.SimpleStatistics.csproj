@@ -3,7 +3,7 @@
   <PropertyGroup>
     <PackageVersion>$(Version)</PackageVersion>
     <TargetFrameworks>net452</TargetFrameworks>
-    <PackageId>NServiceBus.SimpleStatistics</PackageId>
+    <PackageId>NServiceBus.Community.SimpleStatistics</PackageId>
     <Company>https://github.com/ramonsmits</Company>
     <Authors>ramonsmits</Authors>
     <Description>Get live statistics in your console tile or your log and a summary of the performance at endpoint shutdown.</Description>

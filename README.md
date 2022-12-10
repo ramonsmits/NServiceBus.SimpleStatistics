@@ -54,7 +54,9 @@ Note that lines in log file are prefixed with timestamp and logger name.
 
 Install the NuGet package [NServiceBus.SimpleStatistics](https://www.nuget.org/packages/NServiceBus.SimpleStatistics)
 
-    Install-Package NServiceBus.SimpleStatistics
+    Install-Package NServiceBus.Community.SimpleStatistics
+
+Note that the package name contains `Community.` as Particular Software has enabled package suffic protection on NuGet.org
 
 ### Drop in deployment
 
