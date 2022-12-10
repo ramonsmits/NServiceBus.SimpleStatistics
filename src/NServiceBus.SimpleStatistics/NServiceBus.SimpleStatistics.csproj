@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <PackageVersion>$(Version)</PackageVersion>
-    <TargetFrameworks>net452</TargetFrameworks>
+    <TargetFrameworks>net452;netstandard2.0</TargetFrameworks>
     <PackageId>NServiceBus.Community.SimpleStatistics</PackageId>
     <Company>https://github.com/ramonsmits</Company>
     <Authors>ramonsmits</Authors>
@@ -35,8 +35,12 @@
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net452'">
     <Reference Include="System.Configuration" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.7.0" />
   </ItemGroup>
 
   <ItemGroup>

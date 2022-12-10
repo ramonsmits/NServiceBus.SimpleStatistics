@@ -4,11 +4,11 @@ Get live throughput statistics of your NServiceBus endpoint performance.
 
 ## Version compatibility
 
-| NServiceBus | NServiceBus.SimpleStatistics |
-| ----------- | ---------------------------- |
-| v5.x        | v1.x                         |
-| v6.x        | v2.x                         |
-| v7.x        | v3.x                         |
+| NServiceBus | NServiceBus.SimpleStatistics |          Target         |
+|:-----------:|:----------------------------:|:-----------------------:|
+|     v5.x    |             v1.x             |          net452         |
+|     v6.x    |             v2.x             |          net452         |
+|     v7.x    |             v3.x             | net452 / netstandard2.0 |
 
 Please note that there might be versions targeting other NServiceBus versions. [Please check the Releases for all versions.](https://github.com/ramonsmits/NServiceBus.SimpleStatistics/releases) or [check the root of the default branch of the repository](https://github.com/ramonsmits/NServiceBus.SimpleStatistics).
 
