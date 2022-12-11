@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 namespace NServiceBus
 {
     using Features;
-    using System.Configuration;
+    using Microsoft.Extensions.Configuration;
 
     public class SimpleStatisticsFeature : Feature
     {
@@ -14,7 +14,9 @@ namespace NServiceBus
 
         protected override void Setup(FeatureConfigurationContext context)
         {
-            context.Container.ConfigureComponent<Options>(DependencyLifecycle.SingleInstance);
+            var options = context.Settings.Get<Options>() ?? new Options();
+
+            context.Container.ConfigureComponent<Options>(b => options.ImportOverride(b.Build<IConfiguration>()), DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<Collector>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<Implementation>(x => x.Build<Collector>(), DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<StartupTask>(DependencyLifecycle.SingleInstance);

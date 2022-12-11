@@ -16,6 +16,12 @@ class Program
                 cfg.EnableInstallers();
                 cfg.SendFailedMessagesTo("error");
                 cfg.UseTransport<LearningTransport>();
+                cfg.ConfigureStatistics(o =>
+                {
+                    o.UpdateInMilliSeconds = 1000;
+                    o.OutputLog = false;
+                    o.OutputTitle = true;
+                });
                 return cfg;
             })
             .Build();

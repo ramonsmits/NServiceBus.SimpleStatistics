@@ -23,15 +23,19 @@ public class Collector : Implementation
     Data _last;
     Data _maxPerSecond;
 
-    Options options;
+    bool _outputTitle;
+    bool _outputLog;
+    int _updateInMilliSeconds;
 
     public Collector(Options options)
     {
-        this.options = options;
+        _outputTitle = options.OutputTitle.GetValueOrDefault();
+        _outputLog = options.OutputLog.GetValueOrDefault();
+        _updateInMilliSeconds = options.UpdateInMilliSeconds.GetValueOrDefault();
 
-        options.OutputTitle = Environment.UserInteractive && options.OutputTitle;
+        _outputTitle = Environment.UserInteractive && _outputTitle;
 
-        if (options.OutputTitle)
+        if (_outputTitle)
         {
             try
             {
@@ -44,7 +48,7 @@ public class Collector : Implementation
             }
         }
 
-        Log.InfoFormat("Report Interval: {0}", TimeSpan.FromMilliseconds(options.UpdateInMilliSeconds));
+        Log.InfoFormat("Report Interval: {0}", TimeSpan.FromMilliseconds(_updateInMilliSeconds));
         Log.InfoFormat("Console title output: {0}", options.OutputTitle);
         Log.InfoFormat("Log output: {0}", options.OutputLog);
         Reset();
@@ -52,7 +56,7 @@ public class Collector : Implementation
 
     public void Start()
     {
-        _reportTimer = new Timer(HandleReportTimer, null, options.UpdateInMilliSeconds, options.UpdateInMilliSeconds);
+        _reportTimer = new Timer(HandleReportTimer, null, _updateInMilliSeconds, _updateInMilliSeconds);
     }
 
     public void Stop()
@@ -213,7 +217,7 @@ public class Collector : Implementation
         var period = _last.Subtract(_start);
         var average = period.Relative(TimeUnit);
 
-        if (options.OutputLog)
+        if (_outputLog)
         {
             ToLog("Avg", average);
             ToLog("Tot", period);
@@ -222,7 +226,7 @@ public class Collector : Implementation
             Log.InfoFormat("Uptime: {0}", TimeSpan.FromSeconds(period.TotalSeconds));
         }
 
-        if (options.OutputTitle)
+        if (_outputTitle)
         {
             try
             {
@@ -231,63 +235,8 @@ public class Collector : Implementation
             catch (Exception e)
             {
                 Log.Error("Updating console title failed, disabling console title update", e);
-                options.OutputTitle = false;
+                _outputTitle = false;
             }
-        }
-    }
-}
-
-public class Options
-{
-    static readonly string OutputConsoleTitleKey = "OutputConsoleTitle";
-    static readonly string OutputLogKey = "OutputLog";
-    static readonly string IntervalMilliSecondsKey = "IntervalMilliSeconds";
-
-    public bool OutputTitle { get; set; }
-    public bool OutputLog { get; set; }
-    public int UpdateInMilliSeconds { get; set; } = 3600000; // Every hour
-
-    public Options(IConfiguration configuration)
-    {
-        const string TrueString = "True";
-
-        // ConfigurationManager
-
-        const string AppSettingPrefix = "NServiceBus/SimpleStatistics/";
-
-        var appSettings = ConfigurationManager.AppSettings;
-
-        if (string.Equals(appSettings[AppSettingPrefix + OutputConsoleTitleKey], TrueString, StringComparison.InvariantCultureIgnoreCase))
-        {
-            OutputTitle = true;
-        }
-        if (string.Equals(appSettings[AppSettingPrefix + OutputLogKey], TrueString, StringComparison.InvariantCultureIgnoreCase))
-        {
-            OutputLog = true;
-        }
-        if (int.TryParse(appSettings[AppSettingPrefix + IntervalMilliSecondsKey], out var interval))
-        {
-            UpdateInMilliSeconds = interval;
-        }
-
-        // IConfiguration
-        const string ConfigPrefix = "NServiceBus.SimpleStatistics:";
-
-        var outputConsoleTitleCfgValue = configuration[ConfigPrefix + OutputConsoleTitleKey];
-        var outputLogCfgValue = configuration[ConfigPrefix + OutputLogKey];
-        var intervalMilliSecondsCfgValue = configuration[ConfigPrefix + IntervalMilliSecondsKey];
-
-        if (outputConsoleTitleCfgValue == TrueString)
-        {
-            OutputTitle = true;
-        }
-        if (outputLogCfgValue == TrueString)
-        {
-            OutputLog = true;
-        }
-        if (int.TryParse(intervalMilliSecondsCfgValue, out interval))
-        {
-            UpdateInMilliSeconds = interval;
         }
     }
 }
