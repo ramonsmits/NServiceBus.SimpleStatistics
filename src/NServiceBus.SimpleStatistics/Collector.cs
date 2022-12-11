@@ -3,7 +3,7 @@ using System.Configuration;
 using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
-using NServiceBus;
+using Microsoft.Extensions.Configuration;
 using NServiceBus.Logging;
 
 public class Collector : Implementation
@@ -12,10 +12,6 @@ public class Collector : Implementation
     static readonly long TimeUnit = Stopwatch.Frequency;
 
     readonly string _titleFormat;
-    readonly bool _outputLog;
-    readonly int _updateInMilliSeconds = 3600000; // Every hour
-
-    bool _outputTitle;
 
     Timer _reportTimer;
     long _duration;
@@ -27,14 +23,15 @@ public class Collector : Implementation
     Data _last;
     Data _maxPerSecond;
 
-    public Collector()
+    Options options;
+
+    public Collector(Options options)
     {
-        _outputTitle = Environment.UserInteractive && string.Equals(ConfigurationManager.AppSettings[SimpleStatisticsFeature.OutputConsoleTitleKey], bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
-        _outputLog = string.Equals(ConfigurationManager.AppSettings[SimpleStatisticsFeature.OutputLogKey], bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
+        this.options = options;
 
-        if (int.TryParse(ConfigurationManager.AppSettings[SimpleStatisticsFeature.IntervalMilliSecondsKey], out var interval)) _updateInMilliSeconds = interval;
+        options.OutputTitle = Environment.UserInteractive && options.OutputTitle;
 
-        if (_outputTitle)
+        if (options.OutputTitle)
         {
             try
             {
@@ -43,19 +40,19 @@ public class Collector : Implementation
             catch (Exception e)
             {
                 Log.Error("Reading console title failed, disabling console title update", e);
-                _outputTitle = false;
+                options.OutputTitle = false;
             }
         }
 
-        Log.InfoFormat("Report Interval: {0}", TimeSpan.FromMilliseconds(_updateInMilliSeconds));
-        Log.InfoFormat("Console title output: {0}", _outputTitle);
-        Log.InfoFormat("Log output: {0}", _outputLog);
+        Log.InfoFormat("Report Interval: {0}", TimeSpan.FromMilliseconds(options.UpdateInMilliSeconds));
+        Log.InfoFormat("Console title output: {0}", options.OutputTitle);
+        Log.InfoFormat("Log output: {0}", options.OutputLog);
         Reset();
     }
 
     public void Start()
     {
-        _reportTimer = new Timer(HandleReportTimer, null, _updateInMilliSeconds, _updateInMilliSeconds);
+        _reportTimer = new Timer(HandleReportTimer, null, options.UpdateInMilliSeconds, options.UpdateInMilliSeconds);
     }
 
     public void Stop()
@@ -213,32 +210,84 @@ public class Collector : Implementation
         var currentPerSecond = delta.Relative(TimeUnit);
         _maxPerSecond = Data.Max(_maxPerSecond, currentPerSecond);
 
-        if (current.Total > 0)
+        var period = _last.Subtract(_start);
+        var average = period.Relative(TimeUnit);
+
+        if (options.OutputLog)
         {
-            var period = _last.Subtract(_start);
-            var average = period.Relative(TimeUnit);
+            ToLog("Avg", average);
+            ToLog("Tot", period);
+            ToLog("Cur", currentPerSecond);
+            ToLog("Max", _maxPerSecond);
+            Log.InfoFormat("Uptime: {0}", TimeSpan.FromSeconds(period.TotalSeconds));
+        }
 
-            if (_outputLog)
+        if (options.OutputTitle)
+        {
+            try
             {
-                ToLog("Avg", average);
-                ToLog("Tot", period);
-                ToLog("Cur", currentPerSecond);
-                ToLog("Max", _maxPerSecond);
-                Log.InfoFormat("Uptime: {0}", TimeSpan.FromSeconds(period.TotalSeconds));
+                Console.Title = string.Format(CultureInfo.InvariantCulture, _titleFormat, average.Total, currentPerSecond.Total, _maxPerSecond.Total);
             }
+            catch (Exception e)
+            {
+                Log.Error("Updating console title failed, disabling console title update", e);
+                options.OutputTitle = false;
+            }
+        }
+    }
+}
 
-            if (_outputTitle)
-            {
-                try
-                {
-                    Console.Title = string.Format(CultureInfo.InvariantCulture, _titleFormat, average.Total, currentPerSecond.Total, _maxPerSecond.Total);
-                }
-                catch (Exception e)
-                {
-                    Log.Error("Updating console title failed, disabling console title update", e);
-                    _outputTitle = false;
-                }
-            }
+public class Options
+{
+    static readonly string OutputConsoleTitleKey = "OutputConsoleTitle";
+    static readonly string OutputLogKey = "OutputLog";
+    static readonly string IntervalMilliSecondsKey = "IntervalMilliSeconds";
+
+    public bool OutputTitle { get; set; }
+    public bool OutputLog { get; set; }
+    public int UpdateInMilliSeconds { get; set; } = 3600000; // Every hour
+
+    public Options(IConfiguration configuration)
+    {
+        const string TrueString = "True";
+
+        // ConfigurationManager
+
+        const string AppSettingPrefix = "NServiceBus/SimpleStatistics/";
+
+        var appSettings = ConfigurationManager.AppSettings;
+
+        if (string.Equals(appSettings[AppSettingPrefix + OutputConsoleTitleKey], TrueString, StringComparison.InvariantCultureIgnoreCase))
+        {
+            OutputTitle = true;
+        }
+        if (string.Equals(appSettings[AppSettingPrefix + OutputLogKey], TrueString, StringComparison.InvariantCultureIgnoreCase))
+        {
+            OutputLog = true;
+        }
+        if (int.TryParse(appSettings[AppSettingPrefix + IntervalMilliSecondsKey], out var interval))
+        {
+            UpdateInMilliSeconds = interval;
+        }
+
+        // IConfiguration
+        const string ConfigPrefix = "NServiceBus.SimpleStatistics:";
+
+        var outputConsoleTitleCfgValue = configuration[ConfigPrefix + OutputConsoleTitleKey];
+        var outputLogCfgValue = configuration[ConfigPrefix + OutputLogKey];
+        var intervalMilliSecondsCfgValue = configuration[ConfigPrefix + IntervalMilliSecondsKey];
+
+        if (outputConsoleTitleCfgValue == TrueString)
+        {
+            OutputTitle = true;
+        }
+        if (outputLogCfgValue == TrueString)
+        {
+            OutputLog = true;
+        }
+        if (int.TryParse(intervalMilliSecondsCfgValue, out interval))
+        {
+            UpdateInMilliSeconds = interval;
         }
     }
 }

@@ -1,23 +1,12 @@
-
-using System.Configuration;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Linq;
 
 namespace NServiceBus
 {
     using Features;
-    using Logging;
+    using System.Configuration;
 
     public class SimpleStatisticsFeature : Feature
     {
-        static readonly string SettingKey = "NServiceBus/SimpleStatistics";
-
-        internal static readonly string OutputConsoleTitleKey = SettingKey + "/OutputConsoleTitle";
-        internal static readonly string OutputLogKey = SettingKey + "/OutputLog";
-        internal static readonly string IntervalMilliSecondsKey = SettingKey + "/IntervalMilliSeconds";
-
-
         public SimpleStatisticsFeature()
         {
             EnableByDefault();
@@ -25,17 +14,12 @@ namespace NServiceBus
 
         protected override void Setup(FeatureConfigurationContext context)
         {
-            var settings = ConfigurationManager.AppSettings;
-            bool enable;
+            context.Container.ConfigureComponent<Options>(DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent<Collector>(DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent<Implementation>(x => x.Build<Collector>(), DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent<StartupTask>(DependencyLifecycle.SingleInstance);
 
-            if (settings.AllKeys.Contains(SettingKey) && bool.TryParse(settings[SettingKey], out enable) && !enable) return;
-
-            var task = new StartupTask
-            {
-                Collector = new Collector()
-            };
-            context.Container.RegisterSingleton<Implementation>(task.Collector);
-            context.RegisterStartupTask(task);
+            context.RegisterStartupTask<StartupTask>(b => b.Build<StartupTask>());
 
             context.Container.ConfigureComponent<SimpleStatisticsBehavior>(DependencyLifecycle.SingleInstance);
             // Register the new step in the pipeline
@@ -44,7 +28,12 @@ namespace NServiceBus
 
         internal class StartupTask : FeatureStartupTask
         {
-            public Collector Collector { get; set; }
+            readonly Collector Collector;
+
+            public StartupTask(Collector collector)
+            {
+                Collector = collector;
+            }
 
             protected override Task OnStart(IMessageSession session)
             {
