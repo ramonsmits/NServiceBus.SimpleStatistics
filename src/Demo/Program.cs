@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
 using NServiceBus;
 
 class Program
@@ -8,22 +9,18 @@ class Program
     {
         Console.Title = "SimpleStatisticsDemo";
 
-        var cfg = new EndpointConfiguration("SimpleStatisticsDemo");
-        cfg.EnableInstallers();
-        cfg.SendFailedMessagesTo("error");
-        cfg.UseTransport<LearningTransport>();
-        var instance = await Endpoint.Start(cfg);
-        try
-        {
-            while (Console.ReadKey().Key != ConsoleKey.Escape)
+        var host = Host.CreateDefaultBuilder()
+            .UseNServiceBus(hostBuilderContext =>
             {
-                await instance.SendLocal(new Message());
-            }
-        }
-        finally
-        {
-            await instance.Stop();
-        }
+                var cfg = new EndpointConfiguration("SimpleStatisticsDemo");
+                cfg.EnableInstallers();
+                cfg.SendFailedMessagesTo("error");
+                cfg.UseTransport<LearningTransport>();
+                return cfg;
+            })
+            .Build();
+
+        await host.RunAsync();
     }
 }
 
