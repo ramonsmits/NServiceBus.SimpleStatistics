@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NServiceBus.SimpleStatistic
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8B60C09F-C84D-46F1-B93E-839C965B8847}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demo", "Demo\Demo.csproj", "{B1F4B771-0711-4B7D-84CF-A842953FA663}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Demo", "Demo\Demo.csproj", "{B1F4B771-0711-4B7D-84CF-A842953FA663}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
